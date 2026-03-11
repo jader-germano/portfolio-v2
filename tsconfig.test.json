@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2022",
+    "noEmit": false,
+    "outDir": ".tmp-tests",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": [
+    "lib/auth-shared.ts",
+    "lib/i18n.ts",
+    "tests/**/*.ts"
+  ]
+}
