@@ -6,7 +6,7 @@ import { createSupabaseServerAuthClient, supabaseAdmin } from "@/lib/supabase";
 import {
   DEFAULT_AUTHENTICATED_ROUTE,
   SESSION_TIMEOUT_SECONDS,
-  normalizeAppRole,
+  resolveAppRole,
   type AppRole,
 } from "@/lib/auth-shared";
 
@@ -62,10 +62,15 @@ const getProfileRole = async ({
   userId?: string | null;
   email?: string | null;
 }): Promise<AppRole> => {
+  const ownerRole = resolveAppRole(null, email);
+  if (ownerRole === "PRIME_OWNER") {
+    return ownerRole;
+  }
+
   const adminClient = supabaseAdmin();
 
   if (!adminClient) {
-    return "user";
+    return ownerRole;
   }
 
   try {
@@ -76,10 +81,9 @@ const getProfileRole = async ({
         ? await query.eq("email", email).maybeSingle()
         : null;
 
-    const role = normalizeAppRole(response?.data?.role);
-    return role ?? "user";
+    return resolveAppRole(response?.data?.role, email);
   } catch {
-    return "user";
+    return ownerRole;
   }
 };
 
@@ -169,15 +173,57 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (!user.email) return false;
+
+      const email = user.email.toLowerCase();
+      
+      // 1. Bypass gate for PRIME_OWNER
+      const role = resolveAppRole(null, email);
+      if (role === "PRIME_OWNER") {
+        return true;
+      }
+
+      // 2. Check for existing approval and valid 1-day key
+      const adminClient = supabaseAdmin();
+      if (!adminClient) return false;
+
+      const { data: authRequest } = await adminClient
+        .from("auth_requests")
+        .select("*")
+        .eq("email", email)
+        .single();
+
+      // If approved and key is still valid (within 24h of approval/generation)
+      if (authRequest && authRequest.status === "APPROVED") {
+        const expiresAt = new Date(authRequest.key_expires_at);
+        if (expiresAt > new Date()) {
+          return true;
+        }
+      }
+
+      // 3. If no request or expired, create/update as PENDING and redirect
+      if (!authRequest) {
+        await adminClient.from("auth_requests").insert({
+          email,
+          status: "PENDING",
+          requested_provider: account?.provider ?? "unknown",
+        });
+      }
+
+      // Redirect to a pending approval page with specific error
+      return `/login?error=PendingApproval&email=${encodeURIComponent(email)}`;
+    },
     async jwt({ token, user, account }) {
       if (user) {
-        const userRole = "role" in user ? normalizeAppRole(user.role) : null;
+        const userEmail = typeof user.email === "string" ? user.email : undefined;
+        const userRole = "role" in user ? resolveAppRole(user.role, userEmail) : null;
 
         token.role =
           userRole ??
           (await getProfileRole({
             userId: token.sub,
-            email: user.email,
+            email: userEmail,
           }));
         token.provider =
           account?.provider ?? ("provider" in user && typeof user.provider === "string" ? user.provider : "credentials");
@@ -188,7 +234,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        session.user.role = normalizeAppRole(token.role) ?? "user";
+        session.user.role = resolveAppRole(token.role, session.user.email);
         session.user.provider = typeof token.provider === "string" ? token.provider : "credentials";
       }
 

@@ -1,142 +1,246 @@
 "use client";
 
-import { Shield, Activity, RefreshCw, Cpu, Server, Lock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import {
+  Activity,
+  Bot,
+  Lock,
+  Network,
+  Shield,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
+import type { PiDashboardSnapshot } from "@/lib/pi-runtime";
+
+const STATUS_STYLES = {
+  online: "bg-green-500/10 text-green-400 border-green-500/20",
+  warning: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+  offline: "bg-red-500/10 text-red-300 border-red-500/20",
+  unknown: "bg-white/5 text-gray-400 border-white/10",
+  declared: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+} as const;
 
 export default function GuardianConsole() {
-  const { dictionary } = useLanguage();
+  const { dictionary, locale } = useLanguage();
+  const { data: session } = useSession();
+  const [snapshot, setSnapshot] = useState<PiDashboardSnapshot | null>(null);
+  const [error, setError] = useState("");
+
+  const copy =
+    locale === "pt"
+      ? {
+          checksTitle: "Checks ativos",
+          checksDescription: "Guardian agora lê o estado real do Pi e da VPS em vez de cards simulados.",
+          architectureTitle: "Canon de arquitetura",
+          architectureDescription: "Notas canônicas entregues pelo Pi service para manter o dashboard alinhado ao runtime atual.",
+          modelsTitle: "Alias de modelos",
+          modelsDescription: "Modelos locais disponíveis para a lane agentic do Pi.",
+          unavailable: "Não foi possível carregar o snapshot do Guardian.",
+          role: "Papel",
+          updatedAt: "Atualizado em",
+          source: "Origem",
+        }
+      : {
+          checksTitle: "Active checks",
+          checksDescription: "Guardian now reads the real Pi and VPS state instead of simulated replica cards.",
+          architectureTitle: "Architecture canon",
+          architectureDescription: "Canonical notes delivered by the Pi service so the dashboard stays aligned with the live runtime.",
+          modelsTitle: "Model aliases",
+          modelsDescription: "Local models currently available for Pi's agentic lane.",
+          unavailable: "Unable to load the Guardian snapshot.",
+          role: "Role",
+          updatedAt: "Refreshed at",
+          source: "Source",
+        };
+
+  useEffect(() => {
+    let isDisposed = false;
+
+    const loadSnapshot = async () => {
+      try {
+        const response = await fetch("/api/dashboard/runtime", { cache: "no-store" });
+        const payload = (await response.json()) as PiDashboardSnapshot | { detail?: string };
+
+        if (!response.ok) {
+          throw new Error("detail" in payload && payload.detail ? payload.detail : "guardian request failed");
+        }
+
+        if (!isDisposed) {
+          setSnapshot(payload as PiDashboardSnapshot);
+          setError("");
+        }
+      } catch (runtimeError) {
+        if (!isDisposed) {
+          setError(runtimeError instanceof Error ? runtimeError.message : copy.unavailable);
+        }
+      }
+    };
+
+    void loadSnapshot();
+    const interval = window.setInterval(loadSnapshot, 15000);
+
+    return () => {
+      isDisposed = true;
+      window.clearInterval(interval);
+    };
+  }, [copy.unavailable]);
+
+  const updatedAt = snapshot
+    ? new Date(snapshot.fetchedAt).toLocaleString(locale === "pt" ? "pt-BR" : "en-US")
+    : null;
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-8">
-      <header className="mb-12 flex justify-between items-center border-b border-white/5 pb-8">
+    <div className="min-h-screen bg-[#050505] p-8 text-white">
+      <header className="mb-12 flex flex-col gap-6 border-b border-white/5 pb-8 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tighter flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-3xl font-black tracking-tighter">
             <Shield className="text-blue-500" />
             {dictionary.guardian.title}
           </h1>
-          <p className="text-gray-500 font-mono text-xs mt-2 uppercase tracking-widest">
-            {dictionary.guardian.subtitle}
-          </p>
+          <p className="mt-2 font-mono text-xs uppercase tracking-widest text-gray-500">{dictionary.guardian.subtitle}</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-500 text-xs font-bold flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-4 py-2 text-xs font-bold text-green-400">
             <Activity size={14} />
             {dictionary.guardian.healthy}
           </div>
-          <div className="px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-full text-blue-500 text-xs font-bold flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-xs font-bold text-blue-300">
             <Lock size={14} />
-            {dictionary.guardian.admin}
+            {copy.role}: {session?.user?.role ?? "user"}
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Status Panel */}
-        <div className="lg:col-span-2 space-y-8">
-          <section className="p-8 rounded-[32px] bg-white/[0.02] border border-white/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-20">
-              <RefreshCw size={120} />
-            </div>
-            
-            <h2 className="text-xl font-bold mb-8 flex items-center gap-3">
-              <Server size={20} className="text-gray-400" />
-              {dictionary.guardian.replicaTitle}
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Replica A */}
-              <div className="p-6 rounded-2xl bg-blue-600/10 border border-blue-500/30 relative">
-                <div className="absolute top-4 right-4 w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                <h3 className="text-lg font-bold text-blue-400 mb-1">Guardian-A</h3>
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-4">{dictionary.guardian.replicaAStatus}</p>
-                
-                <div className="space-y-2 text-sm font-mono text-gray-300">
-                  <div className="flex justify-between">
-                    <span>{dictionary.guardian.uptime}:</span>
-                    <span>14d 2h 12m</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{dictionary.guardian.load}:</span>
-                    <span>12%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{dictionary.guardian.version}:</span>
-                    <span>v2.4.1</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Replica B */}
-              <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 opacity-60">
-                <h3 className="text-lg font-bold text-gray-400 mb-1">Guardian-B</h3>
-                <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">{dictionary.guardian.replicaBStatus}</p>
-                
-                <div className="space-y-2 text-sm font-mono text-gray-500">
-                  <div className="flex justify-between">
-                    <span>{dictionary.guardian.status}:</span>
-                    <span>{dictionary.guardian.syncing}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{dictionary.guardian.version}:</span>
-                    <span>v2.4.2 (Pending)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Activity Log */}
-          <section className="p-8 rounded-[32px] bg-black border border-white/10 font-mono text-xs h-64 overflow-y-auto">
-            <h3 className="text-gray-500 mb-4 uppercase tracking-widest sticky top-0 bg-black py-2 border-b border-white/10">
-              {dictionary.guardian.logs}
-            </h3>
-            <ul className="space-y-2 text-gray-400">
-              <li className="flex gap-4">
-                <span className="text-blue-500">[14:02:11]</span>
-                <span>{dictionary.guardian.logLines[0]}</span>
-              </li>
-              <li className="flex gap-4">
-                <span className="text-blue-500">[14:00:00]</span>
-                <span>{dictionary.guardian.logLines[1]}</span>
-              </li>
-              <li className="flex gap-4">
-                <span className="text-yellow-500">[13:45:22]</span>
-                <span>{dictionary.guardian.logLines[2]}</span>
-              </li>
-              <li className="flex gap-4">
-                <span className="text-blue-500">[13:45:25]</span>
-                <span>{dictionary.guardian.logLines[3]}</span>
-              </li>
-            </ul>
-          </section>
+      {error ? (
+        <div className="mb-8 rounded-[28px] border border-red-500/20 bg-red-500/5 px-6 py-5 text-sm text-red-200">
+          <p className="font-semibold">{copy.unavailable}</p>
+          <p className="mt-2 font-mono text-xs text-red-100/80">{error}</p>
         </div>
+      ) : null}
 
-        {/* Neural Metrics */}
-        <div className="space-y-6">
-          <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-            <h3 className="text-sm font-bold text-gray-400 mb-4 flex items-center gap-2">
-              <Cpu size={16} />
+      <div className="grid gap-8 lg:grid-cols-3">
+        <section className="lg:col-span-2 rounded-[32px] border border-white/5 bg-white/[0.02] p-8">
+          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.24em] text-white">
+                <Shield className="text-blue-500" size={18} />
+                {copy.checksTitle}
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-gray-500">{copy.checksDescription}</p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-600">{copy.source}</p>
+              <p className="mt-2 text-sm font-mono text-gray-300">{snapshot?.source ?? "—"}</p>
+              {updatedAt ? <p className="mt-2 text-[10px] text-gray-500">{copy.updatedAt}: {updatedAt}</p> : null}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {snapshot?.guardian.guardian.checks.map((check) => (
+              <article
+                key={check.id}
+                className="grid gap-4 rounded-[28px] border border-white/5 bg-black/30 p-5 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto]"
+              >
+                <div>
+                  <p className="text-sm font-black uppercase tracking-tight text-white">{check.name}</p>
+                  <p className="mt-2 text-[10px] font-black uppercase tracking-[0.24em] text-gray-600">{check.id}</p>
+                </div>
+
+                <div>
+                  <p className="text-sm leading-7 text-gray-400">{check.detail}</p>
+                  <p className="mt-2 break-all font-mono text-[11px] text-gray-500">{check.source}</p>
+                </div>
+
+                <div className="flex items-start justify-end">
+                  <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${STATUS_STYLES[check.status]}`}>
+                    {check.status}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <aside className="space-y-6">
+          <div className="rounded-[32px] border border-white/5 bg-white/[0.02] p-6">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-[0.24em] text-gray-300">
+              <Bot size={16} />
+              {copy.modelsTitle}
+            </h3>
+            <p className="mb-6 text-sm leading-relaxed text-gray-500">{copy.modelsDescription}</p>
+
+            <div className="space-y-3">
+              {snapshot
+                ? [
+                    { label: "Default", value: snapshot.health.models.default },
+                    { label: "Fast", value: snapshot.health.models.fast },
+                    { label: "Large", value: snapshot.health.models.large },
+                  ].map((model) => (
+                    <div key={model.label} className="rounded-2xl border border-white/5 bg-black/30 px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-gray-600">{model.label}</p>
+                      <p className="mt-2 font-mono text-sm text-gray-200">{model.value}</p>
+                    </div>
+                  ))
+                : null}
+            </div>
+          </div>
+
+          <div className="rounded-[32px] border border-white/5 bg-gradient-to-br from-blue-900/20 to-slate-900/20 p-6">
+            <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-[0.24em] text-white">
+              <Sparkles size={16} />
               {dictionary.guardian.neuralLoad}
             </h3>
-            <div className="text-4xl font-black mb-2">24%</div>
-            <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
-              <div className="bg-blue-500 h-full w-[24%]" />
-            </div>
+            <p className="text-4xl font-black">{snapshot?.overview.summary.online ?? 0}</p>
+            <p className="mt-2 text-sm text-blue-200/80">
+              {snapshot?.health.ollama.reachable ? "Ollama reachable" : "Ollama requires attention"}
+            </p>
           </div>
-
-          <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5">
-            <h3 className="text-sm font-bold text-gray-400 mb-4">{dictionary.guardian.contextWindow}</h3>
-            <div className="text-4xl font-black mb-2">128k</div>
-            <div className="text-xs text-gray-500">{dictionary.guardian.tokensActive}</div>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-white/5">
-            <h3 className="text-sm font-bold text-white mb-4">{dictionary.guardian.nextUpdate}</h3>
-            <div className="text-2xl font-black mb-1">{dictionary.guardian.sunday}</div>
-            <div className="text-sm text-blue-400">03:00 AM UTC</div>
-          </div>
-        </div>
+        </aside>
       </div>
+
+      <section className="mt-8 rounded-[32px] border border-white/5 bg-white/[0.02] p-8">
+        <div className="mb-8">
+          <h2 className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.24em] text-white">
+            <Network className="text-blue-500" size={18} />
+            {copy.architectureTitle}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">{copy.architectureDescription}</p>
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-2">
+          {snapshot?.overview.architecture.sections.map((section) => (
+            <article key={section.title} className="rounded-[28px] border border-white/5 bg-black/30 p-6">
+              <p className="text-lg font-black tracking-tight text-white">{section.title}</p>
+              <p className="mt-4 text-sm leading-7 text-gray-400">{section.summary}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-[32px] border border-white/5 bg-white/[0.02] p-8">
+        <div className="mb-8 flex items-center gap-3">
+          <TriangleAlert className="text-blue-500" size={18} />
+          <h2 className="text-sm font-black uppercase tracking-[0.24em] text-white">Runtime lanes</h2>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {snapshot?.runtimeLanes.map((lane) => (
+            <article key={lane.id} className="rounded-[28px] border border-white/5 bg-black/30 p-6">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <p className="text-lg font-black tracking-tight text-white">{lane.name}</p>
+                <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${STATUS_STYLES[lane.status]}`}>
+                  {lane.status}
+                </span>
+              </div>
+              <p className="text-sm leading-7 text-gray-400">{lane.detail}</p>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
