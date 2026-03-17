@@ -5,7 +5,7 @@ import { ChevronLeft, LockKeyhole } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export default function PrivacyPageClient() {
-  const { dictionary } = useLanguage();
+  const { dictionary, locale } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
@@ -39,6 +39,22 @@ export default function PrivacyPageClient() {
                 <p className="mt-3 text-sm leading-7 text-gray-400">{section.body}</p>
               </section>
             ))}
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-blue-500/10 bg-blue-500/5 p-6 text-sm leading-7 text-gray-300">
+            <p className="font-black uppercase tracking-[0.24em] text-blue-300">
+              {locale === "pt" ? "Controlador e vigência" : "Controller and effective date"}
+            </p>
+            <p className="mt-3">
+              {locale === "pt"
+                ? "Controlador: JPG Labs / Jader Philipe Germano. Vigente em 15 de março de 2026."
+                : "Controller: JPG Labs / Jader Philipe Germano. Effective March 15, 2026."}
+            </p>
+            <p className="mt-3">
+              {locale === "pt"
+                ? "Solicitações relacionadas a dados, acesso ou revisão devem ser enviadas para jader@jpglabs.com.br."
+                : "Requests related to data, access, or review should be sent to jader@jpglabs.com.br."}
+            </p>
           </div>
         </div>
       </main>

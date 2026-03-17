@@ -218,23 +218,31 @@ export const dictionaries = {
       eyebrow: "Legal",
       title: "Terms of Service",
       description:
-        "Operational terms governing access to the JPG Labs authenticated workspace and the protected technical material made available after sign-in.",
+        "Operational terms governing access to the JPG Labs authenticated workspace, protected technical material, and owner-only dashboard capabilities made available after sign-in.",
       sections: [
         {
           title: "1. Authenticated Access",
-          body: "Private routes are reserved for authorized users. Access must be performed through the configured identity providers and can be revoked when misuse, credential sharing, or suspicious activity is detected.",
+          body: "Private routes are reserved for authorized users and approved operators. Access must be performed through the configured identity providers and can be revoked immediately when misuse, credential sharing, impersonation, or suspicious activity is detected.",
         },
         {
           title: "2. Session Security",
-          body: "Authenticated sessions are protected by a five-minute inactivity timeout. A ten-second warning is displayed before automatic logout so the user can explicitly continue the session.",
+          body: "Authenticated sessions are protected by a five-minute inactivity timeout. A ten-second warning is displayed before automatic logout so the user can explicitly continue the session. JPG Labs may terminate sessions early when security posture, device trust, or policy violations require it.",
         },
         {
-          title: "3. Restricted Material",
-          body: "Protected dashboards, documents, architecture notes, snippets, and operational artifacts remain restricted to signed-in users. Downloading, redistribution, or reuse without authorization is prohibited.",
+          title: "3. Intellectual Property and Confidential Material",
+          body: "Protected dashboards, documents, architecture notes, snippets, diagrams, prompts, and operational artifacts remain the intellectual property of JPG Labs and Jader Philipe Germano unless an explicit written agreement states otherwise. Downloading, redistribution, reverse engineering, resale, or reuse without authorization is prohibited.",
         },
         {
-          title: "4. Operational Conduct",
-          body: "Users must preserve the confidentiality of credentials, keep their workstation protected, and avoid using the private area for automated scraping, abusive requests, or any activity that compromises service stability.",
+          title: "4. Acceptable Operational Conduct",
+          body: "Users must preserve the confidentiality of credentials, keep their workstation protected, and avoid using the private area for automated scraping, abusive requests, credential stuffing, prompt extraction, denial-of-service behavior, or any activity that compromises service stability or owner operations.",
+        },
+        {
+          title: "5. Availability, Changes and Suspension",
+          body: "The platform is provided on a best-effort basis for portfolio, collaboration, and technical evaluation purposes. Features, protected routes, model providers, or documents may be changed, limited, or suspended without prior notice when infrastructure, legal, security, or product conditions require it.",
+        },
+        {
+          title: "6. Governing Rights and Contact",
+          body: "These terms do not transfer any copyright, trademark, or licensing rights except where a written contract expressly grants them. Requests related to access, compliance, or legal communication should be directed to the official JPG Labs contact channels published in this portfolio.",
         },
       ],
     },
@@ -242,23 +250,31 @@ export const dictionaries = {
       back: "Back to login",
       eyebrow: "Legal",
       title: "Privacy Policy",
-      description: "Privacy commitments related to authentication, session handling, and access to the JPG Labs protected workspace.",
+      description: "Privacy commitments related to authentication, session handling, audit trails, and access to the JPG Labs protected workspace.",
       sections: [
         {
           title: "1. Data Collected",
-          body: "When authentication is used, the platform may process identity data returned by GitHub, Google, or the e-mail/password flow, including name, e-mail address, provider identifier, and role metadata required for access control.",
+          body: "When authentication is used, the platform may process identity data returned by GitHub, Google, or the e-mail/password flow, including name, e-mail address, provider identifier, session identifiers, and role metadata required for access control.",
         },
         {
           title: "2. Session and Security Logs",
-          body: "The platform stores secure session identifiers, inactivity timeout state, and minimal access audit information needed to protect private routes and investigate security incidents. Sensitive secrets are never exposed in the frontend.",
+          body: "The platform stores secure session identifiers, inactivity timeout state, device and route access metadata, and minimal audit information needed to protect private routes and investigate incidents. Sensitive secrets, raw provider tokens, and backend credentials are never exposed in the frontend.",
         },
         {
-          title: "3. Protected Content",
-          body: "Private documents, snippets, dashboards, and operational assets are visible only to authenticated users. Access is limited to the minimum data necessary to operate the private workspace and maintain service security.",
+          title: "3. Purpose and Legal Basis",
+          body: "Personal data is processed only for legitimate operational purposes such as authentication, authorization, service integrity, fraud prevention, protected-content delivery, and owner-side support. Data use is limited to what is necessary to operate the protected workspace and maintain service security.",
         },
         {
-          title: "4. Retention and User Rights",
-          body: "Identity and audit records are retained only for operational, security, and compliance purposes. Requests related to access review, correction, or removal should be handled through the official JPG Labs contact channels.",
+          title: "4. Protected Content and Access Minimization",
+          body: "Private documents, snippets, dashboards, architectural references, and operational assets are exposed only to authenticated users with the minimum role required for the action. PRIME_OWNER-only detail views are intentionally restricted and may not be disclosed to other roles.",
+        },
+        {
+          title: "5. Retention, Deletion and User Rights",
+          body: "Identity and audit records are retained only for operational, security, compliance, and fraud-prevention needs. Requests related to access review, correction, or deletion should be handled through the official JPG Labs contact channels, subject to legal and security retention obligations.",
+        },
+        {
+          title: "6. International Providers and Security Controls",
+          body: "Authentication and infrastructure partners may process limited identity data according to their own privacy terms. JPG Labs applies session timeouts, restricted routes, server-side secrets, and owner-governed controls to reduce exposure, but no internet-connected service can guarantee absolute immunity from outages or attacks.",
         },
       ],
     },
@@ -514,23 +530,31 @@ export const dictionaries = {
       eyebrow: "Legal",
       title: "Termos de Serviço",
       description:
-        "Termos operacionais que regem o acesso ao workspace autenticado da JPG Labs e ao material técnico protegido disponível após o login.",
+        "Termos operacionais que regem o acesso ao workspace autenticado da JPG Labs, ao material técnico protegido e às capacidades restritas do dashboard disponibilizadas após o login.",
       sections: [
         {
           title: "1. Acesso Autenticado",
-          body: "As rotas privadas são reservadas a usuários autorizados. O acesso deve ocorrer pelos provedores configurados e pode ser revogado em caso de uso indevido, compartilhamento de credenciais ou atividade suspeita.",
+          body: "As rotas privadas são reservadas a usuários autorizados e operadores aprovados. O acesso deve ocorrer pelos provedores configurados e pode ser revogado imediatamente em caso de uso indevido, compartilhamento de credenciais, tentativa de personificação ou atividade suspeita.",
         },
         {
           title: "2. Segurança de Sessão",
-          body: "As sessões autenticadas são protegidas por expiração após cinco minutos de inatividade. Um aviso de dez segundos é exibido antes do logout automático para que o usuário possa continuar a sessão explicitamente.",
+          body: "As sessões autenticadas são protegidas por expiração após cinco minutos de inatividade. Um aviso de dez segundos é exibido antes do logout automático para que o usuário possa continuar a sessão explicitamente. A JPG Labs pode encerrar a sessão antes desse prazo quando houver exigência de segurança, confiança do dispositivo ou violação de política.",
         },
         {
-          title: "3. Material Restrito",
-          body: "Dashboards, documentos, notas arquiteturais, snippets e artefatos operacionais protegidos permanecem restritos a usuários autenticados. Download, redistribuição ou reutilização sem autorização são proibidos.",
+          title: "3. Propriedade Intelectual e Material Confidencial",
+          body: "Dashboards, documentos, notas arquiteturais, snippets, diagramas, prompts e artefatos operacionais protegidos permanecem como propriedade intelectual da JPG Labs e de Jader Philipe Germano, salvo disposição contratual escrita em sentido diverso. Download, redistribuição, engenharia reversa, revenda ou reutilização sem autorização são proibidos.",
         },
         {
-          title: "4. Conduta Operacional",
-          body: "Os usuários devem preservar a confidencialidade das credenciais, manter a estação de trabalho protegida e evitar scraping automatizado, abuso de requisições ou qualquer atividade que comprometa a estabilidade do serviço.",
+          title: "4. Conduta Operacional Aceitável",
+          body: "Os usuários devem preservar a confidencialidade das credenciais, manter a estação de trabalho protegida e evitar scraping automatizado, requisições abusivas, credential stuffing, extração de prompts, comportamento de negação de serviço ou qualquer atividade que comprometa a estabilidade do serviço ou a operação do proprietário.",
+        },
+        {
+          title: "5. Disponibilidade, Mudanças e Suspensão",
+          body: "A plataforma é fornecida em base de melhor esforço para fins de portfólio, colaboração e avaliação técnica. Funcionalidades, rotas protegidas, provedores de modelo ou documentos podem ser alterados, limitados ou suspensos sem aviso prévio quando houver necessidade de infraestrutura, segurança, requisito legal ou decisão de produto.",
+        },
+        {
+          title: "6. Direitos e Contato",
+          body: "Estes termos não transferem direitos autorais, marcas ou licenças, exceto quando um contrato escrito o fizer expressamente. Solicitações de acesso, conformidade ou comunicação jurídica devem seguir os canais oficiais da JPG Labs publicados neste portfólio.",
         },
       ],
     },
@@ -538,23 +562,31 @@ export const dictionaries = {
       back: "Voltar para o login",
       eyebrow: "Legal",
       title: "Política de Privacidade",
-      description: "Compromissos de privacidade relacionados à autenticação, ao controle de sessão e ao acesso ao workspace protegido da JPG Labs.",
+      description: "Compromissos de privacidade relacionados à autenticação, ao controle de sessão, às trilhas de auditoria e ao acesso ao workspace protegido da JPG Labs.",
       sections: [
         {
           title: "1. Dados Coletados",
-          body: "Quando a autenticação é usada, a plataforma pode processar dados de identidade retornados pelo GitHub, Google ou pelo fluxo de e-mail e senha, incluindo nome, endereço de e-mail, identificador do provedor e metadados de papel necessários ao controle de acesso.",
+          body: "Quando a autenticação é usada, a plataforma pode processar dados de identidade retornados pelo GitHub, Google ou pelo fluxo de e-mail e senha, incluindo nome, endereço de e-mail, identificador do provedor, identificadores de sessão e metadados de papel necessários ao controle de acesso.",
         },
         {
           title: "2. Sessão e Logs de Segurança",
-          body: "A plataforma armazena identificadores seguros de sessão, estado do timeout de inatividade e informações mínimas de auditoria para proteger rotas privadas e investigar incidentes. Segredos sensíveis nunca são expostos no frontend.",
+          body: "A plataforma armazena identificadores seguros de sessão, estado do timeout de inatividade, metadados de dispositivo e rota, além das informações mínimas de auditoria necessárias para proteger rotas privadas e investigar incidentes. Segredos sensíveis, tokens brutos dos provedores e credenciais de backend nunca são expostos no frontend.",
         },
         {
-          title: "3. Conteúdo Protegido",
-          body: "Documentos privados, snippets, dashboards e ativos operacionais ficam visíveis apenas para usuários autenticados. O acesso é limitado ao mínimo necessário para operar a área privada com segurança.",
+          title: "3. Finalidade e Base Legítima",
+          body: "Os dados pessoais são tratados apenas para finalidades operacionais legítimas, como autenticação, autorização, integridade do serviço, prevenção a fraude, entrega de conteúdo protegido e suporte do proprietário. O uso é limitado ao necessário para operar a área privada com segurança.",
         },
         {
-          title: "4. Retenção e Direitos do Usuário",
-          body: "Registros de identidade e auditoria são mantidos apenas para finalidades operacionais, de segurança e conformidade. Solicitações de revisão, correção ou remoção devem seguir os canais oficiais de contato da JPG Labs.",
+          title: "4. Conteúdo Protegido e Minimização de Acesso",
+          body: "Documentos privados, snippets, dashboards, referências arquiteturais e ativos operacionais ficam visíveis apenas para usuários autenticados com o papel mínimo exigido para a ação. Visões detalhadas exclusivas de PRIME_OWNER permanecem intencionalmente restritas e não devem ser divulgadas a outros papéis.",
+        },
+        {
+          title: "5. Retenção, Exclusão e Direitos do Usuário",
+          body: "Registros de identidade e auditoria são mantidos apenas para necessidades operacionais, de segurança, conformidade e prevenção a fraude. Solicitações de revisão, correção ou exclusão devem seguir os canais oficiais de contato da JPG Labs, observadas as obrigações legais e de retenção de segurança.",
+        },
+        {
+          title: "6. Provedores Internacionais e Controles de Segurança",
+          body: "Parceiros de autenticação e infraestrutura podem processar dados limitados de identidade conforme seus próprios termos de privacidade. A JPG Labs aplica timeout de sessão, rotas restritas, segredos mantidos no servidor e controles governados pelo proprietário para reduzir exposição, mas nenhum serviço conectado à internet pode garantir imunidade absoluta contra falhas ou ataques.",
         },
       ],
     },

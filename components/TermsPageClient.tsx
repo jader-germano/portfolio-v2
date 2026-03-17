@@ -5,7 +5,7 @@ import { ChevronLeft, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/components/LanguageProvider";
 
 export default function TermsPageClient() {
-  const { dictionary } = useLanguage();
+  const { dictionary, locale } = useLanguage();
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
@@ -39,6 +39,22 @@ export default function TermsPageClient() {
                 <p className="mt-3 text-sm leading-7 text-gray-400">{section.body}</p>
               </section>
             ))}
+          </div>
+
+          <div className="mt-8 rounded-3xl border border-blue-500/10 bg-blue-500/5 p-6 text-sm leading-7 text-gray-300">
+            <p className="font-black uppercase tracking-[0.24em] text-blue-300">
+              {locale === "pt" ? "Vigência e titularidade" : "Effective date and ownership"}
+            </p>
+            <p className="mt-3">
+              {locale === "pt"
+                ? "Vigente em 15 de março de 2026. © 2026 JPG Labs / Jader Philipe Germano. Todos os direitos reservados."
+                : "Effective March 15, 2026. © 2026 JPG Labs / Jader Philipe Germano. All rights reserved."}
+            </p>
+            <p className="mt-3">
+              {locale === "pt"
+                ? "Contato oficial: jader@jpglabs.com.br"
+                : "Official contact: jader@jpglabs.com.br"}
+            </p>
           </div>
         </div>
       </main>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getProviders, signIn, useSession } from "next-auth/react";
@@ -212,6 +213,21 @@ export default function LoginPageClient() {
             <p className="mt-1 text-xs text-gray-400">{dictionary.login.brandSubtitle}</p>
           </div>
         </Link>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/"
+            className="inline-flex rounded-[24px] border border-white/10 bg-black/30 p-2 transition-all hover:border-blue-500/30 hover:bg-white/[0.03]"
+          >
+            <Image
+              src="/jpg-labs-wordmark.svg"
+              alt={locale === "pt" ? "Logo da JPG Labs" : "JPG Labs logo"}
+              width={280}
+              height={63}
+              priority
+            />
+          </Link>
+        </div>
 
         <p className="mt-8 text-[10px] text-gray-600 font-mono leading-relaxed">
           {dictionary.login.legalPrefix} <br />
