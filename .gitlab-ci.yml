@@ -1,0 +1,232 @@
+stages:
+  - lint
+  - test
+  - build
+  - review
+  - deploy
+
+variables:
+  NODE_VERSION: "20"
+  VPS_HOST: "187.77.227.151"
+  VPS_USER: "root"
+  DEPLOY_DIR: "/opt/portfolio-frontend"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .next/cache/
+
+# ===================
+# LINT
+# ===================
+lint:
+  stage: lint
+  image: node:${NODE_VERSION}-slim
+  script:
+    - npm ci --prefer-offline
+    - npm run lint
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "release"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ===================
+# TEST
+# ===================
+test:
+  stage: test
+  image: node:${NODE_VERSION}-slim
+  script:
+    - npm ci --prefer-offline
+    - npm test
+  artifacts:
+    when: always
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "release"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ===================
+# BUILD
+# ===================
+build:
+  stage: build
+  image: node:${NODE_VERSION}-slim
+  script:
+    - npm ci --prefer-offline
+    - npm run build
+  variables:
+    NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci-anon-key-placeholder"
+    OLLAMA_URL: "http://localhost:11434"
+  artifacts:
+    paths:
+      - .next/
+    expire_in: 1 hour
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "release"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ===================
+# CODE REVIEW (MRs only)
+# ===================
+code-review:
+  stage: review
+  image: node:${NODE_VERSION}-slim
+  only:
+    - merge_requests
+  script:
+    - npm ci --prefer-offline
+    - |
+      echo "## Code Review Report" > review.md
+      echo "" >> review.md
+      echo "**MR:** !${CI_MERGE_REQUEST_IID} - ${CI_MERGE_REQUEST_TITLE}" >> review.md
+      echo "**Branch:** ${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME} -> ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}" >> review.md
+      echo "" >> review.md
+
+      echo "### Lint" >> review.md
+      LINT_OUTPUT=$(npx next lint 2>&1 || true)
+      if echo "$LINT_OUTPUT" | grep -q "No ESLint warnings or errors"; then
+        echo "No lint issues." >> review.md
+      else
+        echo '```' >> review.md
+        echo "$LINT_OUTPUT" >> review.md
+        echo '```' >> review.md
+      fi
+      echo "" >> review.md
+
+      echo "### Changed Files" >> review.md
+      git diff --stat origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}...HEAD 2>/dev/null >> review.md || true
+
+      cat review.md
+  artifacts:
+    paths:
+      - review.md
+    when: always
+
+# ===================
+# DEPLOY DEV (auto on develop)
+# ===================
+deploy-dev:
+  stage: deploy
+  image: debian:bookworm-slim
+  environment:
+    name: development
+    url: http://$VPS_HOST:4001
+  only:
+    - develop
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq openssh-client rsync > /dev/null 2>&1
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
+  script:
+    - rsync -avz --delete
+        --exclude='node_modules'
+        --exclude='.git'
+        --exclude='.next'
+        --exclude='.env'
+        --exclude='.env.local'
+        -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no"
+        ./ ${VPS_USER}@${VPS_HOST}:${DEPLOY_DIR}-dev/
+    - |
+      ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
+        cd ${DEPLOY_DIR}-dev &&
+        cat > .env.local << 'ENVEOF'
+      NEXT_PUBLIC_SUPABASE_URL=${DEV_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY=${DEV_SUPABASE_ANON_KEY}
+      OLLAMA_URL=${DEV_OLLAMA_URL}
+      NODE_ENV=development
+      ENVEOF
+        npm ci --prefer-offline &&
+        npm run build &&
+        (pm2 restart portfolio-frontend-dev 2>/dev/null || pm2 start npm --name portfolio-frontend-dev -- start -- -p 4001)
+      "
+
+# ===================
+# DEPLOY STAGING (auto on release)
+# ===================
+deploy-staging:
+  stage: deploy
+  image: debian:bookworm-slim
+  environment:
+    name: staging
+    url: http://$VPS_HOST:4002
+  only:
+    - release
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq openssh-client rsync > /dev/null 2>&1
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
+  script:
+    - rsync -avz --delete
+        --exclude='node_modules'
+        --exclude='.git'
+        --exclude='.next'
+        --exclude='.env'
+        --exclude='.env.local'
+        -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no"
+        ./ ${VPS_USER}@${VPS_HOST}:${DEPLOY_DIR}-staging/
+    - |
+      ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
+        cd ${DEPLOY_DIR}-staging &&
+        cat > .env.local << 'ENVEOF'
+      NEXT_PUBLIC_SUPABASE_URL=${STG_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY=${STG_SUPABASE_ANON_KEY}
+      OLLAMA_URL=${STG_OLLAMA_URL}
+      NODE_ENV=production
+      ENVEOF
+        npm ci --prefer-offline &&
+        npm run build &&
+        (pm2 restart portfolio-frontend-staging 2>/dev/null || pm2 start npm --name portfolio-frontend-staging -- start -- -p 4002)
+      "
+
+# ===================
+# DEPLOY PRODUCTION (manual, main only)
+# ===================
+deploy-production:
+  stage: deploy
+  image: debian:bookworm-slim
+  environment:
+    name: production
+    url: http://$VPS_HOST:4000
+  only:
+    - main
+  when: manual
+  allow_failure: false
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq openssh-client rsync > /dev/null 2>&1
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
+  script:
+    - rsync -avz --delete
+        --exclude='node_modules'
+        --exclude='.git'
+        --exclude='.next'
+        --exclude='.env'
+        --exclude='.env.local'
+        -e "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no"
+        ./ ${VPS_USER}@${VPS_HOST}:${DEPLOY_DIR}/
+    - |
+      ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
+        cd ${DEPLOY_DIR} &&
+        cat > .env.local << 'ENVEOF'
+      NEXT_PUBLIC_SUPABASE_URL=${PROD_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY=${PROD_SUPABASE_ANON_KEY}
+      OLLAMA_URL=${PROD_OLLAMA_URL}
+      NODE_ENV=production
+      ENVEOF
+        npm ci --prefer-offline &&
+        npm run build &&
+        (pm2 restart portfolio-frontend 2>/dev/null || pm2 start npm --name portfolio-frontend -- start -- -p 4000)
+      "
