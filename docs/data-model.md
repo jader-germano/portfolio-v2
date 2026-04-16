@@ -2,9 +2,9 @@
 
 ## Scope
 
-This model documents the storage boundary for the current Next.js backend/BFF
+This model documents the storage boundary for the currentNest.js backend/BFF
 lane and the future Java + Quarkus replica.
-The current application remains a single Next.js 14 runtime for auth, route
+The current application remains a singleNest.js 14 runtime for auth, route
 handlers, orchestration and Supabase-facing contracts.
 The model below prepares the database contract without prematurely locking the
 resume-upload implementation before discovery closes.
@@ -12,7 +12,7 @@ resume-upload implementation before discovery closes.
 ## Architectural Direction
 
 - Current frontend: separate portfolio shell consuming this backend/BFF.
-- Current backend lane: Next.js App Router handling auth, protected APIs,
+- Current backend lane:Nest.js App Router handling auth, protected APIs,
   orchestration and Supabase contracts.
 - Current auth/session layer: `next-auth` for web session management, Supabase
   Auth for credential validation, and `profiles` for role metadata.
@@ -33,7 +33,7 @@ behavior without changing domain meaning.
 
 ## Scalability Expectations
 
-The Next.js backend/BFF must be designed with business-level growth in mind:
+TheNest.js backend/BFF must be designed with business-level growth in mind:
 
 - support horizontal scale with stateless web nodes
 - keep session state and persistence externalized
@@ -191,7 +191,7 @@ public.private_documents 1---N public.access_audit_events
 - Upload intake UX and discovery feedback
 - Consumption of protected APIs and dashboard data
 
-### Next.js backend/BFF responsibilities
+###Nest.js backend/BFF responsibilities
 
 - Auth/session core
 - Supabase contract ownership
@@ -204,12 +204,12 @@ public.private_documents 1---N public.access_audit_events
 
 - Implement the same API contract and storage semantics
 - Reuse the documented Supabase boundary without reinterpretation
-- Pass contract and parity tests against the Next.js lane
+- Pass contract and parity tests against theNest.js lane
 - Enter only in the final post-deploy replica epic
 
 ## Recommended Next Extraction Order
 
-1. Keep the Next.js lane stateless and horizontally scalable.
+1. Keep theNest.js lane stateless and horizontally scalable.
 2. Document Supabase deeply enough to support a later Java + Quarkus replica.
 3. Treat resume upload as discovery until the intake requirements are frozen.
 4. Move upload/generation/document access to database-backed endpoints only after discovery closure.

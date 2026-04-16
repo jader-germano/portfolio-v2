@@ -6,7 +6,7 @@
 
 ## 1. Current State
 
-- **Stack:** Next.js 14 (App Router) + Supabase + NextAuth
+- **Stack:**Nest.js 14 (App Router) + Supabase + NextAuth
 - **Deployment target:** Single VPS container (Docker Compose) → k3s later
 - **Expected scale:** hundreds → low thousands of business users
 
@@ -109,21 +109,21 @@ Logs to: Supabase `api_events` table → surfaced in portfolio Dashboard.
 | DB connection pooling | Supabase PgBouncer handles this |
 | Env vars only for config | No hardcoded endpoints |
 
-At > 500 concurrent users: add Cloudflare Workers as edge cache layer in front of Next.js.
+At > 500 concurrent users: add Cloudflare Workers as edge cache layer in front ofNest.js.
 
 ---
 
 ## 7. Java/WebFlux Replica — When & How
 
 This is **not in scope** until:
-1. Next.js BFF reaches 1000+ active users or specific latency SLA is missed
+1.Nest.js BFF reaches 1000+ active users or specific latency SLA is missed
 2. Supabase contracts are documented (epic `supabase-contract-and-quarkus-docs`)
 3. VPS is stable and has sufficient headroom
 
 When it is in scope:
 - Same API contracts (OpenAPI spec as source of truth)
 - Same Supabase schema (Java reads from same DB)
-- Load balancer splits traffic: 50% Next.js / 50% WebFlux
+- Load balancer splits traffic: 50%Nest.js / 50% WebFlux
 - Contract parity tests run on both before any shift
 
 ---
