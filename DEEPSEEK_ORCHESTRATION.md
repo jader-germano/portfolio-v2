@@ -19,24 +19,24 @@ The orchestration follows a "Headless AI" pattern where the frontend manages the
 - **Service:** `Ollama` running on the private VPS (port 11434).
 - **Model:** `deepseek-r1:7b`
 - **Orchestration:**
-  - The Next.js backend uses the `fetch` API to call `http://187.77.227.151:11434/api/generate`.
+  - TheNest.js backend uses the `fetch` API to call `http://187.77.227.151:11434/api/generate`.
   - The request specifies `format: "json"` to ensure the model returns a valid JSON object.
   - **Deepseek-R1** processes the unstructured resume text and maps it to the predefined `PortfolioData` schema (name, title, summary, experiences, skills, projects).
 
 ### 4. Data Refinement & Response
 - The Ollama service returns the JSON response.
-- The Next.js backend parses the stringified JSON from `data.response`.
+- TheNest.js backend parses the stringified JSON from `data.response`.
 - The refined object is sent back to the frontend to populate the UI in real-time.
 
 ## 🏗 Infrastructure Integration
 
 The orchestration is resilient due to its **Kubernetes (k3s)** foundation:
-- **Service Discovery:** Next.js communicates with Ollama via internal cluster DNS or the private VPS IP.
+- **Service Discovery:**Nest.js communicates with Ollama via internal cluster DNS or the private VPS IP.
 - **Resource Management:** Ollama is deployed as a separate pod with specific resource limits to ensure it doesn't starve the frontend of CPU/RAM.
 - **Model Persistence:** The `deepseek-r1:7b` model is pre-pulled during the k3s deployment phase using an init container.
 
 ## 🛠 Tech Stack
-- **Orchestrator:** Next.js 14 (App Router)
+- **Orchestrator:**Nest.js 14 (App Router)
 - **LLM Engine:** Ollama
 - **Model:** Deepseek-R1 (7B parameters)
 - **Communication:** JSON-RPC style over HTTP/REST

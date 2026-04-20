@@ -23,7 +23,7 @@ jobs:
           cd code/portfolio
           npm install
 
-      - name: Build Next.js
+      - name: BuildNest.js
         run: |
           cd code/portfolio
           npm run build

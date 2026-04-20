@@ -18,7 +18,7 @@ graph TD
     
     subgraph K3s Cluster
         Traefik[Traefik Ingress] --> Front[Portfolio Frontend - React/Vite]
-        Front --> Port[Portfolio Backend/BFF - Next.js]
+        Front --> Port[Portfolio Backend/BFF -Nest.js]
         Traefik --> n8n[n8n Automation]
         Traefik --> UI[Open-WebUI]
         
@@ -34,9 +34,9 @@ graph TD
 
 ---
 
-## 🚀 Next.js Backend / BFF
+## 🚀Nest.js Backend / BFF
 
-- **Framework:** Next.js 14 (App Router)
+- **Framework:**Nest.js 14 (App Router)
 - **Features:**
   - **Auth and Session Core:** SSO, credentials flow, protected-route session handling, timeout policy.
   - **Protected API Surface:** Route handlers consumed by the portfolio frontend and future mobile lane.
@@ -54,7 +54,7 @@ graph TD
 
 ## ⚙️ Backend & API
 
-The backend currently lives inside the Next.js Route Handlers and should be
+The backend currently lives inside theNest.js Route Handlers and should be
 treated as the first production backend/BFF lane for the platform.
 
 This lane must be designed to support **hundreds or thousands of business
@@ -111,7 +111,7 @@ Java LTS and Quarkus versions validated at implementation time.
 
 ```text
 portfolio/
-├── app/                # Next.js App Router
+├── app/                #Nest.js App Router
 ├── components/         # UI Components (Hero, ResumeUpload, etc.)
 ├── docs/               # Operational docs, RBAC, data model
 ├── k8s/                # Kubernetes Manifests
